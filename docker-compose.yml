@@ -3,13 +3,15 @@ version: '1.0'
 services:
   backend:
     build: ./backend
+    ports:
+      - "8000:8000"  # Map port 8000 of the backend service to port 8000 externally
     networks:
       - internal-network
 
   frontend:
     build: ./frontend
     ports:
-      - "80:80"
+      - "80:6000"  # Map port 80 of the frontend service to port 6000 externally
     networks:
       - internal-network
 

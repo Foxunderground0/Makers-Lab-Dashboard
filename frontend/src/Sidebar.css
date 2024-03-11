@@ -1,0 +1,65 @@
+.sidebar {
+	grid-area: navbar;
+	background-color: #00242b;
+	padding: 0;
+	justify-content: center;
+}
+
+.selectedButton {
+	background-color: #a59e40;
+}
+
+button {
+	box-sizing: border-box;
+
+	width: 100%;
+	background-color: #00242b;
+	border: none;
+	border-radius: 5%;
+	color: #ddd8ca;
+	padding: 16px 0px;
+
+	text-align: center;
+	text-decoration: none;
+	font-size: 16px;
+	margin: 0.75vh 0px;
+	transition-duration: 0.4s;
+	cursor: pointer;
+}
+
+.logo {
+	box-sizing: border-box;
+	width: 100%;
+	height: max(5vh, 40px);
+	background-image: url("logo.png"); /* Specify the path to your logo image */
+	background-size: contain; /* Ensure the logo fits inside the container */
+	background-repeat: no-repeat; /* Prevent the logo from repeating */
+	background-position: center; /* Center the logo horizontally and vertically */
+	border: none;
+	border-radius: 5%;
+	color: #ddd8ca;
+	text-align: center;
+	text-decoration: none;
+	font-size: 16px;
+	margin: 1.9vh 0px;
+	transition-duration: 0.4s;
+	cursor: pointer;
+	animation: spin 15s linear infinite; /* Apply spinning animation */
+	filter: grayscale(100%) invert(100%); /* Apply filters to make the image #ddd8ca */
+}
+
+@keyframes spin {
+	100% {
+		transform: rotate(360deg); /* Rotate the logo by 360 degrees */
+	}
+}
+
+button:hover {
+	background-color: #003944;
+	color: #ddd8ca;
+}
+
+button:active {
+	/* Add your desired styles here */
+	background-color: #00677c;
+}

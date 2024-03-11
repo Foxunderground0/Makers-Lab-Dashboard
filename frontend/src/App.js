@@ -1,27 +1,31 @@
 import React, { useState } from 'react';
 import './App.css';
-import Sidebar from './Sidebar'; // Import Sidebar component
+import Sidebar from './Sidebar';
+import Main from './Main';
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
+  const [currentState, setCurrentState] = useState('Default');
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
+  const handleSidebarItemClick = (item) => {
+    setCurrentState(item);
+  };
+
   return (
     <div className="App">
-      <div className="topbar">
+      <div className="topBar">
         <h1>Makers Lab Logging Software</h1>
       </div>
 
-      {/* Render Sidebar component */}
-      <Sidebar isOpen={sidebarOpen} />
+      <Sidebar isOpen={sidebarOpen} onItemClick={handleSidebarItemClick} />
 
-      <div className="main">
-        {/* Blank main display panel */}
+      <div className="mainArea">
+        {/* Display current state */}
+        <Main state={currentState} />
       </div>
-
     </div>
   );
 }

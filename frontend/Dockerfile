@@ -16,14 +16,8 @@ COPY . .
 # Build the React app for production
 RUN npm run build
 
-# Use Nginx to serve the static files
-FROM nginx
+# Expose port 6000 to the outside world
+EXPOSE 6000
 
-# Copy the production build from the build stage to the Nginx web server directory
-COPY --from=build /app/build /usr/share/nginx/html
-
-# Expose port 80 to the outside world
-EXPOSE 80
-
-# Command to run the Nginx web server
-CMD ["nginx", "-g", "daemon off;"]
+# Command to run the serve command
+CMD ["npx", "serve", "-s", "build", "-l", "6000"]
