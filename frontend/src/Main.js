@@ -5,40 +5,68 @@ const Main = ({ state }) => {
     // State to store machine list
     const [machineList, setMachineList] = useState([]);
 
-    // Effect to fetch machine list from the backend when the component mounts
-    useEffect(() => {
-        // Define a function to fetch machine data
-        const fetchMachines = async () => {
-            try {
-                // Make a GET request to the backend endpoint
-                const response = await fetch('http://localhost:8000/getMachines'); // Adjusted URL
-                // Check if the response is successful
-                if (!response.ok) {
-                    throw new Error('Failed to fetch machines');
-                }
+    const [employeeList, setEmployeeList] = useState([]);
 
-                // Parse the response JSON
-                const machines = await response.json();
-                console.log(machines); // Log the fetched data
-                // Update the machine list state
-                setMachineList(machines);
+    useEffect(() => {
+        // Define a function to fetch data based on the state
+        const fetchData = async () => {
+            try {
+                let url;
+                switch (state) {
+                    case 'Machines':
+                        url = 'http://localhost:8000/getMachines';
+                        break;
+                    case 'Employees':
+                        url = 'http://localhost:8000/getEmployees';
+                        break;
+                    // Add more cases for other states if needed
+                    default:
+                        url = null; // Set a default value if state doesn't match any case
+                }
+                // Check if the URL is defined
+                if (url) {
+                    // Make a GET request to the backend endpoint
+                    const response = await fetch(url);
+                    // Check if the response is successful
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch ${state}`);
+                    }
+                    // Parse the response JSON
+                    const data = await response.json();
+                    console.log(data); // Log the fetched data
+                    // Update the corresponding list state
+                    if (state === 'Machines') {
+                        setMachineList(data);
+                    } else if (state === 'Employees') {
+                        setEmployeeList(data);
+                    }
+                    // Add more conditions for other states if needed
+                }
             } catch (error) {
-                console.error('Error fetching machines:', error);
+                console.error(`Error fetching ${state}:`, error);
             }
         };
 
-
-        // Call the fetchMachines function
-        fetchMachines();
-    }, []); // Empty dependency array ensures the effect runs only once after initial render
+        // Call the fetchData function
+        fetchData();
+    }, [state]); // Include state in the dependency array to run the effect whenever state changes
 
     // Render the table rows based on the machine list
     const renderMachineRows = () => {
         return machineList.map(machine => (
-            <div className="table-row" key={machine.id}>
-                <div className="row-item">{machine.id}</div>
-                <div className="row-item">{machine.name}</div>
-                <div className="row-item">{machine.location}</div>
+            <div className="table-row" key={machine.machine_id}>
+                <div className="row-item">{machine.machine_id}</div>
+                <div className="row-item">{machine.machine_name}</div>
+                <div className="row-item">{machine.lab_name}</div>
+            </div>
+        ));
+    };
+
+    const renderEmployeeRows = () => {
+        return employeeList.map(employee => (
+            <div className="table-row" key={employee.employee_id}>
+                <div className="row-item">{employee.employee_id}</div>
+                <div className="row-item">{employee.name}</div>
             </div>
         ));
     };
@@ -51,7 +79,7 @@ const Main = ({ state }) => {
                     <div className="row-item">Task ID</div>
                     <div className="row-item">Task Name</div>
                     <div className="row-item">Assigned To</div>
-                    <div className="row-item">Status</div>
+                    <div className="row-item small-row-item">Status</div>
                 </div>
                 <div className="table-row">
                     <div className="row-item">1</div>
@@ -63,7 +91,7 @@ const Main = ({ state }) => {
                     <div className="row-item">2</div>
                     <div className="row-item">Task 2</div>
                     <div className="row-item">Jane Smith</div>
-                    <div className="row-item">In Progress</div>
+                    <div className="row-item"><div className='trashIcon'></div></div>
                 </div>
             </>
         ),
@@ -82,21 +110,8 @@ const Main = ({ state }) => {
                 <div className="table-row heading">
                     <div className="row-item">Employee ID</div>
                     <div className="row-item">Employee Name</div>
-                    <div className="row-item">Department</div>
-                    <div className="row-item">Role</div>
                 </div>
-                <div className="table-row">
-                    <div className="row-item">1</div>
-                    <div className="row-item">John Doe</div>
-                    <div className="row-item">Engineering</div>
-                    <div className="row-item">Engineer</div>
-                </div>
-                <div className="table-row">
-                    <div className="row-item">2</div>
-                    <div className="row-item">Jane Smith</div>
-                    <div className="row-item">HR</div>
-                    <div className="row-item">Manager</div>
-                </div>
+                {renderEmployeeRows()}
             </>
         )
     };

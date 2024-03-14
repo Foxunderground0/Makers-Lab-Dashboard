@@ -3,6 +3,8 @@
 	background-color: #00242b;
 	padding: 0;
 	justify-content: center;
+	z-index: 1;
+	box-shadow: 2px 9vh 6px 0px rgba(0, 0, 0, 0.39), 2px 9vh 30px -8px rgba(0, 0, 0, 0.23);
 }
 
 .selectedButton {
@@ -15,7 +17,6 @@ button {
 	width: 100%;
 	background-color: #00242b;
 	border: none;
-	border-radius: 5%;
 	color: #ddd8ca;
 	padding: 16px 0px;
 

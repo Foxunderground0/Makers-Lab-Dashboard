@@ -2,12 +2,9 @@
 FROM postgres:latest
 
 # Set environment variables for PostgreSQL
-ENV POSTGRES_USER=myuser
-ENV POSTGRES_PASSWORD=mypassword
-ENV POSTGRES_DB=mydatabase
+ENV POSTGRES_USER="backend_user"
+ENV POSTGRES_PASSWORD="password"
+ENV POSTGRES_DB="Makers-Lab-DB"
 
 # Expose PostgreSQL port
 EXPOSE 5432
-
-# Create a volume for storing PostgreSQL data
-VOLUME /var/lib/postgresql/data

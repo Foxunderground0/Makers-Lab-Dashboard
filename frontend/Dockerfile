@@ -10,8 +10,9 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Copy the rest of the application code to the working directory
-COPY . .
+# Copy only the necessary files for building the application
+COPY public/ ./public/
+COPY src/ ./src/
 
 # Build the React app for production
 RUN npm run build

@@ -12,7 +12,6 @@
 }
 
 .topBar {
-	grid-area: navbar;
 	color: #ddd8ca;
 	background-color: #00242b;
 	display: flex;
@@ -20,4 +19,6 @@
 	align-items: center;
 	padding-left: 10px;
 	grid-area: topbar;
+	box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+	z-index: 1;
 }

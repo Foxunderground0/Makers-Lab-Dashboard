@@ -4,26 +4,21 @@ services:
   backend:
     build: ./backend
     ports:
-      - "8000:8000"  # Map port 8000 of the backend service to port 8000 externally
-    networks:
-      - internal-network
+      - "8000:8000"  
+    depends_on:
+      - database
 
   frontend:
     build: ./frontend
     ports:
-      - "80:6000"  # Map port 80 of the frontend service to port 6000 externally
-    networks:
-      - internal-network
+      - "80:6000"  
 
   database:
     build: ./database
-    #volumes:
-    #  - my-database-volume:/var/lib/postgresql/data
-    networks:
-      - internal-network
+    ports:
+      - "5432:5432"
+    volumes:
+      - my-database-volume:/var/lib/postgresql/data
 
 volumes:
   my-database-volume:
-
-networks:
-  internal-network:
