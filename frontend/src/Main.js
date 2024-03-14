@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import "./Main.css";
+import './Main.css';
 
 const Main = ({ state }) => {
-    // State to store machine list
     const [machineList, setMachineList] = useState([]);
-
     const [employeeList, setEmployeeList] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
-        // Define a function to fetch data based on the state
+        setCurrentPage(1); // Reset page when state changes
+
         const fetchData = async () => {
             try {
                 let url;
@@ -19,41 +19,36 @@ const Main = ({ state }) => {
                     case 'Employees':
                         url = 'http://localhost:8000/getEmployees';
                         break;
-                    // Add more cases for other states if needed
                     default:
-                        url = null; // Set a default value if state doesn't match any case
+                        url = null;
                 }
-                // Check if the URL is defined
                 if (url) {
-                    // Make a GET request to the backend endpoint
                     const response = await fetch(url);
-                    // Check if the response is successful
                     if (!response.ok) {
                         throw new Error(`Failed to fetch ${state}`);
                     }
-                    // Parse the response JSON
                     const data = await response.json();
-                    console.log(data); // Log the fetched data
-                    // Update the corresponding list state
                     if (state === 'Machines') {
                         setMachineList(data);
                     } else if (state === 'Employees') {
                         setEmployeeList(data);
                     }
-                    // Add more conditions for other states if needed
                 }
             } catch (error) {
                 console.error(`Error fetching ${state}:`, error);
             }
         };
 
-        // Call the fetchData function
         fetchData();
-    }, [state]); // Include state in the dependency array to run the effect whenever state changes
+    }, [state]);
 
-    // Render the table rows based on the machine list
+    const itemsPerPage = 15;
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = state === 'Machines' ? machineList.slice(indexOfFirstItem, indexOfLastItem) : employeeList.slice(indexOfFirstItem, indexOfLastItem);
+
     const renderMachineRows = () => {
-        return machineList.map(machine => (
+        return currentItems.map(machine => (
             <div className="table-row" key={machine.machine_id}>
                 <div className="row-item">{machine.machine_id}</div>
                 <div className="row-item">{machine.machine_name}</div>
@@ -63,7 +58,7 @@ const Main = ({ state }) => {
     };
 
     const renderEmployeeRows = () => {
-        return employeeList.map(employee => (
+        return currentItems.map(employee => (
             <div className="table-row" key={employee.employee_id}>
                 <div className="row-item">{employee.employee_id}</div>
                 <div className="row-item">{employee.name}</div>
@@ -71,7 +66,30 @@ const Main = ({ state }) => {
         ));
     };
 
-    // Define different sets of table rows based on different states
+    const handleClick = (type) => {
+        if (type === 'next') {
+            setCurrentPage(currentPage + 1);
+        } else if (type === 'prev' && currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+        }
+    };
+
+    const renderPaginationButtons = () => {
+        const shouldDisplayButtons = state === 'Machines' ? machineList.length > itemsPerPage : employeeList.length > itemsPerPage;
+
+        if (!shouldDisplayButtons) {
+            return null;
+        }
+
+        return (
+            <div className="pagination-buttons">
+                <button onClick={() => handleClick('prev')} disabled={currentPage === 1}>Previous</button>
+                <button onClick={() => handleClick('next')} disabled={state === 'Machines' ? indexOfLastItem >= machineList.length : indexOfLastItem >= employeeList.length}>Next</button>
+            </div>
+        );
+    };
+
+
     const tables = {
         Tasks: (
             <>
@@ -103,6 +121,7 @@ const Main = ({ state }) => {
                     <div className="row-item">Location</div>
                 </div>
                 {renderMachineRows()}
+                {renderPaginationButtons()}
             </>
         ),
         Employees: (
@@ -112,6 +131,7 @@ const Main = ({ state }) => {
                     <div className="row-item">Employee Name</div>
                 </div>
                 {renderEmployeeRows()}
+                {renderPaginationButtons()}
             </>
         )
     };
@@ -119,7 +139,6 @@ const Main = ({ state }) => {
     return (
         <div className="main-container">
             <div className="table-container">
-                {/* Render the appropriate table based on the state */}
                 {tables[state]}
             </div>
         </div>

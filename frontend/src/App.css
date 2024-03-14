@@ -9,6 +9,7 @@
 
 .mainArea {
 	grid-area: main;
+	overflow-y: hidden;
 }
 
 .topBar {
