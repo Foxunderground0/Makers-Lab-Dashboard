@@ -8,6 +8,20 @@
 	flex-direction: column;
 }
 
+.row-item input[type="text"] {
+	/* Your styles here */
+	border: 1px solid #ccc;
+	padding: 5px 10px;
+	border-radius: 4px;
+
+	transition: all 0.1s ease-in-out;
+	/* Add more styles as needed */
+}
+
+.row-item input[type="text"]:focus {
+	background-color: rgb(228, 228, 228);
+}
+
 .main-container {
 	padding-top: 1vh;
 	padding-bottom: 1vh;
@@ -79,6 +93,18 @@
 
 /* Apply hover effect to the image */
 .trashIcon:hover {
+	transform: scale(105%);
+	cursor: pointer;
+}
+
+.plusIcon {
+	position: relative; /* Position the div */
+	content: url("plus.svg"); /* Set the URL of the image */
+	transition: 0.1s ease-in-out;
+}
+
+/* Apply hover effect to the image */
+.plusIcon:hover {
 	transform: scale(105%);
 	cursor: pointer;
 }

@@ -7,6 +7,9 @@ const app = express();
 // Use cors middleware with origin set to the frontend service name
 app.use(cors());
 
+// Add middleware to parse JSON bodies
+app.use(express.json());
+
 // PostgreSQL connection configuration
 const pool = new Pool({
     user: 'backend_user',
@@ -50,6 +53,50 @@ app.get('/getEmployees', async (req, res) => {
         res.json(rows);
     } catch (error) {
         console.error('Error retrieving employees:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+// Define a route handler for deleting an employee using POST method
+app.post('/deleteEmployee', async (req, res) => {
+    console.log(req.body);
+    const { employeeId } = req.body; // Extract employeeId from request body
+    try {
+        // Query to delete the employee with the given employeeId using parameterized query
+        const query = 'DELETE FROM employees WHERE employee_id = $1';
+
+        // Execute the parameterized query
+        const result = await pool.query(query, [employeeId]);
+
+        // Check if any rows were affected
+        if (result.rowCount === 0) {
+            // If no rows were affected, the employee with the provided ID doesn't exist
+            return res.status(404).send('Employee not found');
+        }
+
+        // If the employee was successfully deleted, send success response
+        res.send('Employee deleted successfully');
+    } catch (error) {
+        console.error(`Error deleting employee with ID ${employeeId}:`, error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+// Define a route handler for /addEmployee endpoint
+app.post('/addEmployee', async (req, res) => {
+    console.log(req.body);
+    const { id, name } = req.body; // Extract id and name from request body
+    try {
+        // Validate id and name if needed
+
+        // Query to insert a new employee into the employees table
+        const query = 'INSERT INTO employees (employee_id, name) VALUES ($1,$2)';
+        // Execute the query
+        await pool.query(query, [id, name]);
+
+        res.send('Employee added successfully');
+    } catch (error) {
+        console.error('Error adding employee:', error);
         res.status(500).send('Internal Server Error');
     }
 });
