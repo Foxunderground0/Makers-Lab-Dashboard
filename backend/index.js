@@ -101,6 +101,38 @@ app.post('/addEmployee', async (req, res) => {
     }
 });
 
+// Define a route handler for /addMachine endpoint
+app.post('/addMachine', async (req, res) => {
+    const { id, name, location } = req.body; // Extract id, name, and location from request body
+    try {
+        // Query to insert a new machine into the machines table
+        const query = 'INSERT INTO machines (machine_id, machine_name, lab_name) VALUES ($1,$2,$3)';
+        // Execute the query
+        await pool.query(query, [id, name, location]);
+
+        res.send('Machine added successfully');
+    } catch (error) {
+        console.error('Error adding machine:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+// Define a route handler for /deleteMachine endpoint
+app.post('/deleteMachine', async (req, res) => {
+    const { machineId } = req.body; // Extract id from request parameters
+    try {
+        // Query to delete a machine from the machines table
+        const query = 'DELETE FROM machines WHERE machine_id = $1';
+        // Execute the query
+        await pool.query(query, [machineId]);
+
+        res.send('Machine deleted successfully');
+    } catch (error) {
+        console.error('Error deleting machine:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
 // Start the server on port 8000
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {

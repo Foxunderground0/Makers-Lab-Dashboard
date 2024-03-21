@@ -6,18 +6,27 @@ const Main = ({ state }) => {
     const [employeeList, setEmployeeList] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [newEmployee, setNewEmployee] = useState({ id: '', name: '' }); // State to store new employee data
+    const [newMachine, setNewMachine] = useState({ id: '', name: '', location: '' }); // State to store new machine data
 
     useEffect(() => {
         setCurrentPage(1); // Reset page when state changes
         fetchData();
     }, [state]);
 
+    // Find the maximum ID from the employeeList array
     useEffect(() => {
-        // Find the maximum ID from the employeeList array
         const maxId = employeeList.reduce((max, employee) => (employee.employee_id > max ? employee.employee_id : max), 0);
         // Set the default ID to the maximum ID + 1
         setNewEmployee(prevState => ({ ...prevState, id: maxId + 1 }));
     }, [employeeList]);
+
+
+    // Find the maximum ID from the machineList array
+    useEffect(() => {
+        const maxId = machineList.reduce((max, machine) => (machine.machine_id > max ? machine.machine_id : max), 0);
+        // Set the default ID to the maximum ID + 1
+        setNewMachine(prevState => ({ ...prevState, id: maxId + 1 }));
+    }, [machineList]);
 
     const fetchData = async () => {
         try {
@@ -54,18 +63,7 @@ const Main = ({ state }) => {
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = state === 'Machines' ? machineList.slice(indexOfFirstItem, indexOfLastItem) : employeeList.slice(indexOfFirstItem, indexOfLastItem);
 
-    const renderMachineRows = () => {
-        // Sort the machines by machine_id
-        const sortedMachines = currentItems.sort((a, b) => a.machine_id - b.machine_id);
-        return sortedMachines.map(machine => (
-            <div className="table-row" key={machine.machine_id}>
-                <div className="row-item">{machine.machine_id}</div>
-                <div className="row-item">{machine.machine_name}</div>
-                <div className="row-item">{machine.lab_name}</div>
-                <div className="row-item"><div className='trashIcon'></div></div>
-            </div>
-        ));
-    };
+
 
     const renderEmployeeRows = () => {
         // Sort the employees by employee_id
@@ -123,7 +121,7 @@ const Main = ({ state }) => {
 
     const handleDeleteEmployee = async (employeeId) => {
         try {
-            const response = await fetch(`http://localhost:8000/deleteEmployee/`, {
+            const response = await fetch(`http://localhost:8000/deleteEmployee`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -144,6 +142,70 @@ const Main = ({ state }) => {
         }
     };
 
+    const handleAddMachine = async () => {
+        try {
+            // Check if the newMachine ID already exists
+            const idExists = machineList.some(machine => machine.machine_id === newMachine.id);
+            if (idExists) {
+                console.error('Error adding machine: ID already exists');
+                return; // Exit the function if ID already exists
+            }
+
+            const response = await fetch('http://localhost:8000/addMachine', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newMachine) // Send newMachine data as JSON
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to add machine');
+            }
+
+            // Clear the input fields after successful addition
+            setNewMachine({ id: '', name: '', location: '' });
+            // Refetch machine data to update the list
+            await fetchData();
+        } catch (error) {
+            console.error('Error adding machine:', error);
+        }
+    };
+
+    const handleDeleteMachine = async (machineId) => {
+        try {
+            const response = await fetch(`http://localhost:8000/deleteMachine`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ machineId: machineId }) // Wrap employeeId in an object
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to delete machine with ID ${machineId}`);
+            }
+
+            // Filter out the deleted machine from the machineList based on machine_id
+            setMachineList(prevMachineList => prevMachineList.filter(machine => machine.machine_id !== machineId));
+
+        } catch (error) {
+            console.error('Error deleting machine:', error);
+        }
+    };
+
+    const renderMachineRows = () => {
+        // Sort the machines by machine_id
+        const sortedMachines = currentItems.sort((a, b) => a.machine_id - b.machine_id);
+        return sortedMachines.map(machine => (
+            <div className="table-row" key={machine.machine_id}>
+                <div className="row-item">{machine.machine_id}</div>
+                <div className="row-item">{machine.machine_name}</div>
+                <div className="row-item">{machine.lab_name}</div>
+                <div className="row-item"><div className='trashIcon' onClick={() => handleDeleteMachine(machine.machine_id)}></div></div>
+            </div>
+        ));
+    };
 
     const renderPaginationButtons = () => {
         const shouldDisplayButtons = state === 'Machines' ? machineList.length > itemsPerPage : employeeList.length > itemsPerPage;
@@ -196,7 +258,20 @@ const Main = ({ state }) => {
                     <div className="row-item">Location</div>
                     <div className="row-item small-row-item">Action</div>
                 </div>
-
+                <div className='table-row'>
+                    <div className="row-item">
+                        <input type="text" placeholder="ID" name="id" value={newMachine.id} onChange={(e) => setNewMachine({ ...newMachine, id: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="text" placeholder="Name" name="name" value={newMachine.name} onChange={(e) => setNewMachine({ ...newMachine, name: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="text" placeholder="Location" name="location" value={newMachine.location} onChange={(e) => setNewMachine({ ...newMachine, location: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <div className='plusIcon' onClick={handleAddMachine}></div>
+                    </div>
+                </div>
                 {renderMachineRows()}
                 {renderPaginationButtons()}
             </>
