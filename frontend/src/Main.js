@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Main.css';
 
 const Main = ({ state }) => {
+
     const [machineList, setMachineList] = useState([]);
     const [employeeList, setEmployeeList] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
@@ -20,13 +21,17 @@ const Main = ({ state }) => {
         setNewEmployee(prevState => ({ ...prevState, id: maxId + 1 }));
     }, [employeeList]);
 
-
     // Find the maximum ID from the machineList array
     useEffect(() => {
         const maxId = machineList.reduce((max, machine) => (machine.machine_id > max ? machine.machine_id : max), 0);
         // Set the default ID to the maximum ID + 1
         setNewMachine(prevState => ({ ...prevState, id: maxId + 1 }));
     }, [machineList]);
+
+    const itemsPerPage = 15;
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = state === 'Machines' ? machineList.slice(indexOfFirstItem, indexOfLastItem) : employeeList.slice(indexOfFirstItem, indexOfLastItem);
 
     const fetchData = async () => {
         try {
@@ -57,28 +62,6 @@ const Main = ({ state }) => {
             console.error(`Error fetching ${state}:`, error);
         }
     };
-
-    const itemsPerPage = 15;
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = state === 'Machines' ? machineList.slice(indexOfFirstItem, indexOfLastItem) : employeeList.slice(indexOfFirstItem, indexOfLastItem);
-
-
-
-    const renderEmployeeRows = () => {
-        // Sort the employees by employee_id
-        const sortedEmployees = currentItems.sort((a, b) => a.employee_id - b.employee_id);
-        return sortedEmployees.map(employee => (
-            <div className="table-row" key={employee.employee_id}>
-                <div className="row-item">{employee.employee_id}</div>
-                <div className="row-item">{employee.name}</div>
-                <div className="row-item">
-                    <div className='trashIcon' onClick={() => handleDeleteEmployee(employee.employee_id)}></div>
-                </div>
-            </div>
-        ));
-    };
-
 
     const handleClick = (type) => {
         if (type === 'next') {
@@ -118,7 +101,6 @@ const Main = ({ state }) => {
         }
     };
 
-
     const handleDeleteEmployee = async (employeeId) => {
         try {
             const response = await fetch(`http://localhost:8000/deleteEmployee`, {
@@ -140,6 +122,20 @@ const Main = ({ state }) => {
         } catch (error) {
             console.error('Error deleting employee:', error);
         }
+    };
+
+    const renderEmployeeRows = () => {
+        // Sort the employees by employee_id
+        const sortedEmployees = currentItems.sort((a, b) => a.employee_id - b.employee_id);
+        return sortedEmployees.map(employee => (
+            <div className="table-row" key={employee.employee_id}>
+                <div className="row-item">{employee.employee_id}</div>
+                <div className="row-item">{employee.name}</div>
+                <div className="row-item">
+                    <div className='trashIcon' onClick={() => handleDeleteEmployee(employee.employee_id)}></div>
+                </div>
+            </div>
+        ));
     };
 
     const handleAddMachine = async () => {
@@ -222,11 +218,6 @@ const Main = ({ state }) => {
         );
     };
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setNewEmployee(prevState => ({ ...prevState, [name]: value }));
-    };
-
     const tables = {
         Tasks: (
             <>
@@ -284,8 +275,24 @@ const Main = ({ state }) => {
                     <div className="row-item small-row-item">Action</div>
                 </div>
                 <div className='table-row'>
-                    <div className="row-item"><input type="text" placeholder="ID" name="id" value={newEmployee.id} onChange={handleInputChange}></input></div>
-                    <div className="row-item"><input type="text" placeholder="Name" name="name" value={newEmployee.name} onChange={handleInputChange}></input></div>
+                    <div className="row-item">
+                        <input
+                            type="text"
+                            placeholder="ID"
+                            name="id"
+                            value={newEmployee.id}
+                            onChange={(e) => setNewEmployee({ ...newEmployee, id: e.target.value })}
+                        />
+                    </div>
+                    <div className="row-item">
+                        <input
+                            type="text"
+                            placeholder="Name"
+                            name="name"
+                            value={newEmployee.name}
+                            onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
+                        />
+                    </div>
                     <div className="row-item">
                         <div className='plusIcon' onClick={handleAddEmployee}></div>
                     </div>
