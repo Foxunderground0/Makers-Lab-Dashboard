@@ -57,6 +57,22 @@ app.get('/getEmployees', async (req, res) => {
     }
 });
 
+app.get('/getTasks', async (req, res) => {
+    try {
+        // Query to select all rows from the tasks table
+        const query = 'SELECT * FROM tasks';
+
+        // Execute the query
+        const { rows } = await pool.query(query);
+
+        // Return the tasks data as JSON
+        res.json(rows);
+    } catch (error) {
+        console.error('Error retrieving tasks:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
 // Define a route handler for deleting an employee using POST method
 app.post('/deleteEmployee', async (req, res) => {
     console.log(req.body);
@@ -101,6 +117,22 @@ app.post('/addEmployee', async (req, res) => {
     }
 });
 
+// Define a route handler for /deleteMachine endpoint
+app.post('/deleteMachine', async (req, res) => {
+    const { machineId } = req.body; // Extract id from request parameters
+    try {
+        // Query to delete a machine from the machines table
+        const query = 'DELETE FROM machines WHERE machine_id = $1';
+        // Execute the query
+        await pool.query(query, [machineId]);
+
+        res.send('Machine deleted successfully');
+    } catch (error) {
+        console.error('Error deleting machine:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
 // Define a route handler for /addMachine endpoint
 app.post('/addMachine', async (req, res) => {
     const { id, name, location } = req.body; // Extract id, name, and location from request body
@@ -117,21 +149,6 @@ app.post('/addMachine', async (req, res) => {
     }
 });
 
-// Define a route handler for /deleteMachine endpoint
-app.post('/deleteMachine', async (req, res) => {
-    const { machineId } = req.body; // Extract id from request parameters
-    try {
-        // Query to delete a machine from the machines table
-        const query = 'DELETE FROM machines WHERE machine_id = $1';
-        // Execute the query
-        await pool.query(query, [machineId]);
-
-        res.send('Machine deleted successfully');
-    } catch (error) {
-        console.error('Error deleting machine:', error);
-        res.status(500).send('Internal Server Error');
-    }
-});
 
 // Start the server on port 8000
 const PORT = process.env.PORT || 8000;

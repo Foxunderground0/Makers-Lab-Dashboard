@@ -3,6 +3,7 @@ import './Main.css';
 
 const Main = ({ state }) => {
 
+    const [taskList, setTaskList] = useState([]);
     const [machineList, setMachineList] = useState([]);
     const [employeeList, setEmployeeList] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
@@ -31,12 +32,18 @@ const Main = ({ state }) => {
     const itemsPerPage = 15;
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = state === 'Machines' ? machineList.slice(indexOfFirstItem, indexOfLastItem) : employeeList.slice(indexOfFirstItem, indexOfLastItem);
+    const currentItems = state === 'Machines' ? machineList.slice(indexOfFirstItem, indexOfLastItem)
+        : state === 'Employees' ? employeeList.slice(indexOfFirstItem, indexOfLastItem)
+            : taskList.slice(indexOfFirstItem, indexOfLastItem);
+
 
     const fetchData = async () => {
         try {
             let url;
             switch (state) {
+                case 'Tasks':
+                    url = 'http://localhost:8000/getTasks';
+                    break;
                 case 'Machines':
                     url = 'http://localhost:8000/getMachines';
                     break;
@@ -56,6 +63,8 @@ const Main = ({ state }) => {
                     setMachineList(data);
                 } else if (state === 'Employees') {
                     setEmployeeList(data);
+                } else if (state === 'Tasks') {
+                    setTaskList(data);
                 }
             }
         } catch (error) {
@@ -203,8 +212,34 @@ const Main = ({ state }) => {
         ));
     };
 
+    // Sort the tasks by ID
+    const renderTaskRows = () => {
+        // Sort the tasks by their index
+        const sortedTasks = currentItems.sort((a, b) => a.Index - b.Index);
+        console.log(sortedTasks);
+        return sortedTasks.map(task => (
+            <div className="table-row" key={task.Index}>
+                <div className="row-item">{task.Index}</div>
+                <div className="row-item">{task.Task}</div>
+                <div className="row-item">{task['Invoice ID']}</div>
+                <div className="row-item">{new Date(task.Date).toLocaleDateString()}</div>
+                <div className="row-item">{task['Invoice File Name']}</div>
+                <div className="row-item">{task['Task Description']}</div>
+                <div className="row-item">{task['Customer Name']}</div>
+                <div className="row-item">{task['Customer Email']}</div>
+                <div className="row-item">{task.Cost}</div>
+                <div className="row-item">{task['Initial Approval'] ? 'Approved' : 'Not Approved'}</div>
+                <div className="row-item">{task['Completion Status'] ? 'Completed' : 'Not Completed'}</div>
+                <div className="row-item">{task['Invoice Approval'] ? 'Approved' : 'Not Approved'}</div>
+                <div className="row-item">{task['Payment Status'] ? 'Paid' : 'Not Paid'}</div>
+            </div>
+        ));
+    };
+
     const renderPaginationButtons = () => {
-        const shouldDisplayButtons = state === 'Machines' ? machineList.length > itemsPerPage : employeeList.length > itemsPerPage;
+        const shouldDisplayButtons = state === 'Machines' ? machineList.length > itemsPerPage
+            : state === 'Employees' ? employeeList.length > itemsPerPage
+                : taskList.length > itemsPerPage;
 
         if (!shouldDisplayButtons) {
             return null;
@@ -213,10 +248,13 @@ const Main = ({ state }) => {
         return (
             <div className="pagination-buttons">
                 <button onClick={() => handleClick('prev')} disabled={currentPage === 1}>Previous</button>
-                <button onClick={() => handleClick('next')} disabled={state === 'Machines' ? indexOfLastItem >= machineList.length : indexOfLastItem >= employeeList.length}>Next</button>
+                <button onClick={() => handleClick('next')} disabled={state === 'Machines' ? indexOfLastItem >= machineList.length
+                    : state === 'Employees' ? indexOfLastItem >= employeeList.length
+                        : indexOfLastItem >= taskList.length}>Next</button>
             </div>
         );
     };
+
 
     const tables = {
         Tasks: (
@@ -224,21 +262,22 @@ const Main = ({ state }) => {
                 <div className="table-row heading">
                     <div className="row-item">Task ID</div>
                     <div className="row-item">Task Name</div>
-                    <div className="row-item">Assigned To</div>
-                    <div className="row-item small-row-item">Action</div>
+                    <div className="row-item">Invoice ID</div>
+                    <div className="row-item">Date</div>
+                    <div className="row-item">Invoice File Name</div>
+                    <div className="row-item">Task Description</div>
+                    <div className="row-item">Customer Name</div>
+                    <div className="row-item">Customer Email</div>
+                    <div className="row-item">Cost</div>
+                    <div className="row-item">Initial Approval</div>
+                    <div className="row-item">Completion Status</div>
+                    <div className="row-item">Invoice Approval</div>
+                    <div className="row-item">Payment Status</div>
+                    <div className="row-item">Action</div>
                 </div>
-                <div className="table-row">
-                    <div className="row-item">1</div>
-                    <div className="row-item">Task 1</div>
-                    <div className="row-item">John Doe</div>
-                    <div className="row-item">Completed</div>
-                </div>
-                <div className="table-row">
-                    <div className="row-item">2</div>
-                    <div className="row-item">Task 2</div>
-                    <div className="row-item">Jane Smith</div>
-                    <div className="row-item"><div className='trashIcon'></div></div>
-                </div>
+
+                {renderTaskRows()}
+                {renderPagiationButtons()}
             </>
         ),
         Machines: (

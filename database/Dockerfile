@@ -8,3 +8,6 @@ ENV POSTGRES_DB="Makers-Lab-DB"
 
 # Expose PostgreSQL port
 EXPOSE 5432
+
+#psql -U backend_user Makers-Lab-DB
+#psql -U backend_user Makers-Lab-DB -a -f /home/a.txt
