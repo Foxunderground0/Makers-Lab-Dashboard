@@ -9,6 +9,8 @@ const Main = ({ state }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [newEmployee, setNewEmployee] = useState({ id: '', name: '' }); // State to store new employee data
     const [newMachine, setNewMachine] = useState({ id: '', name: '', location: '' }); // State to store new machine data
+    const [newTask, setNewTask] = useState({ id: "", name: "", invoiceId: "", date: "", invoiceFileName: "", taskDescription: "", customerName: "", customerEmail: "", cost: "", initialApproval: "", completionStatus: "", invoiceApproval: "", paymentStatus: "" });
+
 
     useEffect(() => {
         setCurrentPage(1); // Reset page when state changes
@@ -29,13 +31,19 @@ const Main = ({ state }) => {
         setNewMachine(prevState => ({ ...prevState, id: maxId + 1 }));
     }, [machineList]);
 
-    const itemsPerPage = 15;
+
+    let itemsPerPage;
+    if (state === 'Tasks') {
+        itemsPerPage = 8;
+    } else {
+        itemsPerPage = 15;
+    }
+
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = state === 'Machines' ? machineList.slice(indexOfFirstItem, indexOfLastItem)
         : state === 'Employees' ? employeeList.slice(indexOfFirstItem, indexOfLastItem)
             : taskList.slice(indexOfFirstItem, indexOfLastItem);
-
 
     const fetchData = async () => {
         try {
@@ -212,7 +220,6 @@ const Main = ({ state }) => {
         ));
     };
 
-    // Sort the tasks by ID
     const renderTaskRows = () => {
         // Sort the tasks by their index
         const sortedTasks = currentItems.sort((a, b) => a.Index - b.Index);
@@ -228,10 +235,21 @@ const Main = ({ state }) => {
                 <div className="row-item">{task['Customer Name']}</div>
                 <div className="row-item">{task['Customer Email']}</div>
                 <div className="row-item">{task.Cost}</div>
-                <div className="row-item">{task['Initial Approval'] ? 'Approved' : 'Not Approved'}</div>
-                <div className="row-item">{task['Completion Status'] ? 'Completed' : 'Not Completed'}</div>
-                <div className="row-item">{task['Invoice Approval'] ? 'Approved' : 'Not Approved'}</div>
-                <div className="row-item">{task['Payment Status'] ? 'Paid' : 'Not Paid'}</div>
+                <div className="row-item">
+                    <input type="checkbox" checked={task['Initial Approval']} className="disabled-checkbox" />
+                </div>
+                <div className="row-item">
+                    <input type="checkbox" checked={task['Completion Status']} className="disabled-checkbox" />
+                </div>
+                <div className="row-item">
+                    <input type="checkbox" checked={task['Invoice Approval']} className="disabled-checkbox" />
+                </div>
+                <div className="row-item">
+                    <input type="checkbox" checked={task['Payment Status']} className="disabled-checkbox" />
+                </div>
+                <div className="row-item">
+                    <div className='trashIcon'></div>
+                </div>
             </div>
         ));
     };
@@ -245,16 +263,23 @@ const Main = ({ state }) => {
             return null;
         }
 
+        // Calculate total number of pages
+        const totalPageCount = Math.ceil((state === 'Machines' ? machineList.length
+            : state === 'Employees' ? employeeList.length
+                : taskList.length) / itemsPerPage);
+
         return (
-            <div className="pagination-buttons">
-                <button onClick={() => handleClick('prev')} disabled={currentPage === 1}>Previous</button>
-                <button onClick={() => handleClick('next')} disabled={state === 'Machines' ? indexOfLastItem >= machineList.length
-                    : state === 'Employees' ? indexOfLastItem >= employeeList.length
-                        : indexOfLastItem >= taskList.length}>Next</button>
+            <div>
+                <div className="pagination-buttons">
+                    <button onClick={() => handleClick('prev')} disabled={currentPage === 1}>Previous</button>
+                    <button onClick={() => handleClick('next')} disabled={state === 'Machines' ? indexOfLastItem >= machineList.length
+                        : state === 'Employees' ? indexOfLastItem >= employeeList.length
+                            : indexOfLastItem >= taskList.length}>Next</button>
+                </div>
+                <div className="page-number">{currentPage} / {totalPageCount}</div>
             </div>
         );
     };
-
 
     const tables = {
         Tasks: (
@@ -276,8 +301,40 @@ const Main = ({ state }) => {
                     <div className="row-item">Action</div>
                 </div>
 
+                <div className='table-row'>
+                    <div className="row-item">
+                        <input type="text" placeholder="ID" name="id" value={newTask.id} onChange={(e) => setNewTask({ ...newTask, id: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="text" placeholder="Name" name="name" value={newTask.name} onChange={(e) => setNewTask({ ...newTask, name: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="text" placeholder="Invoice ID" name="invoiceId" value={newTask.invoiceId} onChange={(e) => setNewTask({ ...newTask, invoiceId: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="date" placeholder="Date" name="date" value={newTask.date} onChange={(e) => setNewTask({ ...newTask, date: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="text" placeholder="Invoice File Name" name="invoiceFileName" value={newTask.invoiceFileName} onChange={(e) => setNewTask({ ...newTask, invoiceFileName: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="text" placeholder="Task Description" name="taskDescription" value={newTask.taskDescription} onChange={(e) => setNewTask({ ...newTask, taskDescription: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="text" placeholder="Customer Name" name="customerName" value={newTask.customerName} onChange={(e) => setNewTask({ ...newTask, customerName: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="text" placeholder="Customer Email" name="customerEmail" value={newTask.customerEmail} onChange={(e) => setNewTask({ ...newTask, customerEmail: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="text" placeholder="Cost" name="cost" value={newTask.cost} onChange={(e) => setNewTask({ ...newTask, cost: e.target.value })} />
+
+                    </div>
+
+                </div>
+
                 {renderTaskRows()}
-                {renderPagiationButtons()}
+                {renderPaginationButtons()}
             </>
         ),
         Machines: (

@@ -13,7 +13,7 @@
 	border: 1px solid #ccc;
 	padding: 5px 10px;
 	border-radius: 4px;
-
+	width: 75%;
 	transition: all 0.1s ease-in-out;
 	/* Add more styles as needed */
 }
@@ -60,6 +60,7 @@
 }
 
 .row-item {
+	text-align: center;
 	display: flex;
 	flex: 1;
 	font-size: 14px;
@@ -113,4 +114,17 @@
 	display: flex;
 	gap: 5vh;
 	padding: 2vh;
+	padding-bottom: 0.5vh;
+}
+
+.disabled-checkbox {
+	pointer-events: none;
+	opacity: 1;
+}
+
+.page-number {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding-bottom: 0.5vh;
 }
