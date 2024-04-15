@@ -220,6 +220,60 @@ const Main = ({ state }) => {
         ));
     };
 
+    const handleAddTask = async () => {
+
+        console.log("Lesgo");
+        try {
+            // Check if the newTask ID already exists
+            const idExists = taskList.some(task => task.Index === newTask.id);
+            if (idExists) {
+                console.error('Error adding task: ID already exists');
+                return; // Exit the function if ID already exists
+            }
+
+            const response = await fetch('http://localhost:8000/addTask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newTask) // Send newTask data as JSON
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to add task');
+            }
+
+            // Clear the input fields after successful addition
+            setNewTask({ id: "", name: "", invoiceId: "", date: "", invoiceFileName: "", taskDescription: "", customerName: "", customerEmail: "", cost: "", initialApproval: "", completionStatus: "", invoiceApproval: "", paymentStatus: "" });
+            // Refetch task data to update the list
+            await fetchData();
+        } catch (error) {
+            console.error('Error adding task:', error);
+        }
+    };
+
+    const handleDeleteTask = async (taskId) => {
+        try {
+            const response = await fetch(`http://localhost:8000/deleteTask`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ taskId: taskId }) // Wrap taskId in an object
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to delete task with ID ${taskId}`);
+            }
+
+            // Filter out the deleted task from the taskList based on Index
+            setTaskList(prevTaskList => prevTaskList.filter(task => task.Index !== taskId));
+
+        } catch (error) {
+            console.error('Error deleting task:', error);
+        }
+    };
+
     const renderTaskRows = () => {
         // Sort the tasks by their index
         const sortedTasks = currentItems.sort((a, b) => a.Index - b.Index);
@@ -248,7 +302,7 @@ const Main = ({ state }) => {
                     <input type="checkbox" checked={task['Payment Status']} className="disabled-checkbox" />
                 </div>
                 <div className="row-item">
-                    <div className='trashIcon'></div>
+                    <div className='trashIcon' onClick={() => handleDeleteTask(task.Index)}></div>
                 </div>
             </div>
         ));
@@ -306,13 +360,13 @@ const Main = ({ state }) => {
                         <input type="text" placeholder="ID" name="id" value={newTask.id} onChange={(e) => setNewTask({ ...newTask, id: e.target.value })} />
                     </div>
                     <div className="row-item">
-                        <input type="text" placeholder="Name" name="name" value={newTask.name} onChange={(e) => setNewTask({ ...newTask, name: e.target.value })} />
+                        <input type="text" placeholder="Task Name" name="name" value={newTask.name} onChange={(e) => setNewTask({ ...newTask, name: e.target.value })} />
                     </div>
                     <div className="row-item">
                         <input type="text" placeholder="Invoice ID" name="invoiceId" value={newTask.invoiceId} onChange={(e) => setNewTask({ ...newTask, invoiceId: e.target.value })} />
                     </div>
                     <div className="row-item">
-                        <input type="date" placeholder="Date" name="date" value={newTask.date} onChange={(e) => setNewTask({ ...newTask, date: e.target.value })} />
+                        <input type="date" name="date" value={newTask.date} onChange={(e) => setNewTask({ ...newTask, date: e.target.value })} />
                     </div>
                     <div className="row-item">
                         <input type="text" placeholder="Invoice File Name" name="invoiceFileName" value={newTask.invoiceFileName} onChange={(e) => setNewTask({ ...newTask, invoiceFileName: e.target.value })} />
@@ -328,9 +382,22 @@ const Main = ({ state }) => {
                     </div>
                     <div className="row-item">
                         <input type="text" placeholder="Cost" name="cost" value={newTask.cost} onChange={(e) => setNewTask({ ...newTask, cost: e.target.value })} />
-
                     </div>
-
+                    <div className="row-item">
+                        <input type="checkbox" checked={newTask.initialApproval} onChange={(e) => setNewTask({ ...newTask, initialApproval: e.target.checked })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="checkbox" checked={newTask.completionStatus} onChange={(e) => setNewTask({ ...newTask, completionStatus: e.target.checked })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="checkbox" checked={newTask.invoiceApproval} onChange={(e) => setNewTask({ ...newTask, invoiceApproval: e.target.checked })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="checkbox" checked={newTask.paymentStatus} onChange={(e) => setNewTask({ ...newTask, paymentStatus: e.target.checked })} />
+                    </div>
+                    <div className="row-item">
+                        <div className='plusIcon' oncClick={handleAddTask()}></div>
+                    </div>
                 </div>
 
                 {renderTaskRows()}

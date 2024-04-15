@@ -149,6 +149,55 @@ app.post('/addMachine', async (req, res) => {
     }
 });
 
+//           setNewTask({ id: "", name: "", invoiceId: "", date: "", invoiceFileName: "", taskDescription: "", customerName: "", customerEmail: "", cost: "", initialApproval: "", completionStatus: "", invoiceApproval: "", paymentStatus: "" });
+
+/* CREATE TABLE Tasks (
+"Index" SERIAL PRIMARY KEY,
+    "Task" VARCHAR(255),
+        "Invoice ID" VARCHAR(255),
+            "Date" DATE,
+                "Invoice File Name" VARCHAR(255),
+                    "Task Description" VARCHAR(255),
+                        "Customer Name" VARCHAR(255),
+                            "Customer Email" VARCHAR(255),
+                                "Cost" NUMERIC,
+                                    "Initial Approval" BOOLEAN,
+                                        "Completion Status" BOOLEAN,
+                                            "Invoice Approval" BOOLEAN,
+                                                "Payment Status" BOOLEAN
+);
+*/
+
+
+app.post('/addTask', async (req, res) => {
+    const { id, name, invoiceId, date, invoiceFileName, taskDescription, customerName, customerEmail, cost, initialApproval, completionStatus, invoiceApproval, paymentStatus } = req.body; // Extract id, name, and location from request body
+    try {
+        // Query to insert a new machine into the machines table
+        const query = 'INSERT INTO tasks ("Index", "Task", "Invoice ID", "Date", "Invoice File Name", "Task Description", "Customer Name", "Customer Email", "Cost", "Initial Approval", "Completion Status", "Invoice Approval", "Payment Status") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)';
+        // Execute the query
+        await pool.query(query, [id, name, invoiceId, date, invoiceFileName, taskDescription, customerName, customerEmail, cost, initialApproval, completionStatus, invoiceApproval, paymentStatus]);
+
+        res.send('Task added successfully');
+    } catch (error) {
+        console.error('Error adding task:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.post('/deleteTask', async (req, res) => {
+    const { taskId } = req.body; // Extract id from request parameters
+    try {
+        // Query to delete a machine from the machines table
+        const query = 'DELETE FROM tasks WHERE "Index" = $1';
+        // Execute the query
+        await pool.query(query, [taskId]);
+
+        res.send('Task deleted successfully');
+    } catch (error) {
+        console.error('Error deleting task:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
 
 // Start the server on port 8000
 const PORT = process.env.PORT || 8000;
