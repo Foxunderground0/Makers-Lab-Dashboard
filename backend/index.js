@@ -149,31 +149,29 @@ app.post('/addMachine', async (req, res) => {
     }
 });
 
-//           setNewTask({ id: "", name: "", invoiceId: "", date: "", invoiceFileName: "", taskDescription: "", customerName: "", customerEmail: "", cost: "", initialApproval: "", completionStatus: "", invoiceApproval: "", paymentStatus: "" });
-
-/* CREATE TABLE Tasks (
-"Index" SERIAL PRIMARY KEY,
-    "Task" VARCHAR(255),
-        "Invoice ID" VARCHAR(255),
-            "Date" DATE,
-                "Invoice File Name" VARCHAR(255),
-                    "Task Description" VARCHAR(255),
-                        "Customer Name" VARCHAR(255),
-                            "Customer Email" VARCHAR(255),
-                                "Cost" NUMERIC,
-                                    "Initial Approval" BOOLEAN,
-                                        "Completion Status" BOOLEAN,
-                                            "Invoice Approval" BOOLEAN,
-                                                "Payment Status" BOOLEAN
-);
-*/
-
-
 app.post('/addTask', async (req, res) => {
-    const { id, name, invoiceId, date, invoiceFileName, taskDescription, customerName, customerEmail, cost, initialApproval, completionStatus, invoiceApproval, paymentStatus } = req.body; // Extract id, name, and location from request body
+    console.log("addTask called");
+    console.log(req.body);
+    var { id, name, invoiceId, date, invoiceFileName, taskDescription, customerName, customerEmail, cost, initialApproval, completionStatus, invoiceApproval, paymentStatus } = req.body; // Extract id, name, and location from request body
+
+    // If Initial Approval, Completion Status, Invoice Approval, Payment Status are empty, set them to false.
+    if (initialApproval == "") {
+        initialApproval = false;
+    }
+    if (completionStatus == "") {
+        completionStatus = false;
+    }
+    if (invoiceApproval == "") {
+        invoiceApproval = false;
+    }
+    if (paymentStatus == "") {
+        paymentStatus = false;
+    }
+
     try {
         // Query to insert a new machine into the machines table
         const query = 'INSERT INTO tasks ("Index", "Task", "Invoice ID", "Date", "Invoice File Name", "Task Description", "Customer Name", "Customer Email", "Cost", "Initial Approval", "Completion Status", "Invoice Approval", "Payment Status") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)';
+
         // Execute the query
         await pool.query(query, [id, name, invoiceId, date, invoiceFileName, taskDescription, customerName, customerEmail, cost, initialApproval, completionStatus, invoiceApproval, paymentStatus]);
 

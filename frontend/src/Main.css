@@ -110,6 +110,17 @@
 	cursor: pointer;
 }
 
+.pencilIcon {
+	position: relative; /* Position the div */
+	content: url("pencil.svg"); /* Set the URL of the image */
+	transition: 0.1s ease-in-out;
+}
+
+.pencilIcon:hover {
+	transform: scale(105%);
+	cursor: pointer;
+}
+
 .pagination-buttons {
 	display: flex;
 	gap: 5vh;
