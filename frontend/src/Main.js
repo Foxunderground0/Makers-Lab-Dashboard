@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Main.css';
 
-const Main = ({ state }) => {
+const Main = ({ state, user }) => {
 
     const [taskList, setTaskList] = useState([]);
     const [machineList, setMachineList] = useState([]);
@@ -10,7 +10,7 @@ const Main = ({ state }) => {
     const [newEmployee, setNewEmployee] = useState({ id: '', name: '' }); // State to store new employee data
     const [newMachine, setNewMachine] = useState({ id: '', name: '', location: '' }); // State to store new machine data
     const [newTask, setNewTask] = useState({ id: "", name: "", invoiceId: "", date: "", invoiceFileName: "", taskDescription: "", customerName: "", customerEmail: "", cost: "", initialApproval: "", completionStatus: "", invoiceApproval: "", paymentStatus: "" });
-
+    const [newLog, setNewLog] = useState({ id: '', date: '', taskId: '', hours: '', machine: "", machineHours: '', notes: '' });
 
     useEffect(() => {
         setCurrentPage(1); // Reset page when state changes
@@ -24,12 +24,22 @@ const Main = ({ state }) => {
         setNewEmployee(prevState => ({ ...prevState, id: maxId + 1 }));
     }, [employeeList]);
 
-    // Find the maximum ID from the machineList array
     useEffect(() => {
         const maxId = machineList.reduce((max, machine) => (machine.machine_id > max ? machine.machine_id : max), 0);
         // Set the default ID to the maximum ID + 1
         setNewMachine(prevState => ({ ...prevState, id: maxId + 1 }));
     }, [machineList]);
+
+    //find the maximum ID from the taskList array
+    useEffect(() => {
+        const maxId = taskList.reduce((max, task) => (task.Index > max ? task.Index : max), 0);
+        // Set the default ID to the maximum ID + 1
+        setNewTask(prevState => ({ ...prevState, id: maxId + 1 }));
+        // Set the default date to the current date
+        setNewTask(prevState => ({ ...prevState, date: new Date().toISOString().split('T')[0] }));
+    }, [taskList]);
+
+    // Find the maximum ID from the logList array
 
 
     let itemsPerPage;
@@ -57,6 +67,9 @@ const Main = ({ state }) => {
                     break;
                 case 'Employees':
                     url = 'http://localhost:8000/getEmployees';
+                    break;
+                case 'Logs':
+                    url = `http://localhost:8000/getLogs/${user}`;
                     break;
                 default:
                     url = null;
@@ -300,189 +313,238 @@ const Main = ({ state }) => {
                 <div className="row-item">
                     <input type="checkbox" checked={task['Payment Status']} className={`disabled-checkbox${task.Index}`} />
                 </div>
+                {/*
                 <div className="row-item">
-                    <div className='pencilIcon' onClick={({ task.Index }) => {
-                        // Remove the disabled-checkbox class from all the checkboxes
-                        // Make sure the checkboxes are editable only for this task id
-                        const checkboxes = document.querySelectorAll('.disabled-checkbox' + toString(task.Index));
+                    <div className='pencilIcon' onClick={() => {
+                        // Construct the class name
+                        const className = `.disabled-checkbox${task.Index}`;
+                        // Get all elements with the constructed class name
+                        const checkboxes = document.querySelectorAll(className);
+                        // Remove the class from all these elements
                         checkboxes.forEach((checkbox) => {
-                        checkbox.classList.remove('disabled-checkbox' + toString(task.Index));
+                            checkbox.classList.remove(`disabled-checkbox${task.Index}`);
+                            console.log(checkbox);
                         });
                     }}>
-                </div>
+                    </div>
 
-                <div className='trashIcon' onClick={() => handleDeleteTask(task.Index)}></div>
-            </div>
+                    <div className='trashIcon' onClick={() => handleDeleteTask(task.Index)}></div>
+                </div>
+                */}
             </div >
         ));
     };
 
-const renderPaginationButtons = () => {
-    const shouldDisplayButtons = state === 'Machines' ? machineList.length > itemsPerPage
-        : state === 'Employees' ? employeeList.length > itemsPerPage
-            : taskList.length > itemsPerPage;
 
-    if (!shouldDisplayButtons) {
-        return null;
-    }
 
-    // Calculate total number of pages
-    const totalPageCount = Math.ceil((state === 'Machines' ? machineList.length
-        : state === 'Employees' ? employeeList.length
-            : taskList.length) / itemsPerPage);
+    const renderPaginationButtons = () => {
+        const shouldDisplayButtons = state === 'Machines' ? machineList.length > itemsPerPage
+            : state === 'Employees' ? employeeList.length > itemsPerPage
+                : taskList.length > itemsPerPage;
+
+        if (!shouldDisplayButtons) {
+            return null;
+        }
+
+        // Calculate total number of pages
+        const totalPageCount = Math.ceil((state === 'Machines' ? machineList.length
+            : state === 'Employees' ? employeeList.length
+                : taskList.length) / itemsPerPage);
+
+        return (
+            <div>
+                <div className="pagination-buttons">
+                    <button onClick={() => handleClick('prev')} disabled={currentPage === 1}>Previous</button>
+                    <button onClick={() => handleClick('next')} disabled={state === 'Machines' ? indexOfLastItem >= machineList.length
+                        : state === 'Employees' ? indexOfLastItem >= employeeList.length
+                            : indexOfLastItem >= taskList.length}>Next</button>
+                </div>
+                <div className="page-number">{currentPage} / {totalPageCount}</div>
+            </div>
+        );
+    };
+
+    const tables = {
+        Logs: (
+            <>
+                <div className="table-row heading">
+                    <div className="row-item">Log ID</div>
+                    <div className="row-item">Date</div>
+                    <div className="row-item">TaskID</div>
+                    <div className="row-item">Hours</div>
+                    <div className="row-item">Machine</div>
+                    <div className="row-item">Machine Hours</div>
+                    <div className="row-item">Notes</div>
+                    <div className="row-item">Action</div>
+                </div>
+
+                <div className='table-row'>
+                    <div className="row-item">
+                        <input type="text" placeholder="ID" name="id" value={newLog.id} onChange={(e) => setNewLog({ ...newLog, id: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="date" name="date" value={newLog.date} onChange={(e) => setNewLog({ ...newLog, date: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="text" placeholder="Task ID" name="taskId" value={newLog.taskId} onChange={(e) => setNewLog({ ...newLog, taskId: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="text" placeholder="Hours" name="hours" value={newLog.hours} onChange={(e) => setNewLog({ ...newLog, hours: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="text" placeholder="Machine" name="machine" value={newLog.machine} onChange={(e) => setNewLog({ ...newLog, machine: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="text" placeholder="Machine Hours" name="machineHours" value={newLog.machineHours} onChange={(e) => setNewLog({ ...newLog, machineHours: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="text" placeholder="Notes" name="notes" value={newLog.notes} onChange={(e) => setNewLog({ ...newLog, notes: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <div className='plusIcon'></div>
+                    </div>
+
+                </div>
+            </>
+        ),
+        Tasks: (
+            <>
+                <div className="table-row heading">
+                    <div className="row-item">Task ID</div>
+                    <div className="row-item">Task Name</div>
+                    <div className="row-item">Invoice ID</div>
+                    <div className="row-item">Date</div>
+                    <div className="row-item">Invoice File Name</div>
+                    <div className="row-item">Task Description</div>
+                    <div className="row-item">Customer Name</div>
+                    <div className="row-item">Customer Email</div>
+                    <div className="row-item">Cost</div>
+                    <div className="row-item">Initial Approval</div>
+                    <div className="row-item">Completion Status</div>
+                    <div className="row-item">Invoice Approval</div>
+                    <div className="row-item">Payment Status</div>
+                    <div className="row-item">Action</div>
+                </div>
+
+                <div className='table-row'>
+                    <div className="row-item">
+                        <input type="text" placeholder="ID" name="id" value={newTask.id} onChange={(e) => setNewTask({ ...newTask, id: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="text" placeholder="Task Name" name="name" value={newTask.name} onChange={(e) => setNewTask({ ...newTask, name: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="text" placeholder="Invoice ID" name="invoiceId" value={newTask.invoiceId} onChange={(e) => setNewTask({ ...newTask, invoiceId: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="date" name="date" value={newTask.date} onChange={(e) => setNewTask({ ...newTask, date: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="text" placeholder="Invoice File Name" name="invoiceFileName" value={newTask.invoiceFileName} onChange={(e) => setNewTask({ ...newTask, invoiceFileName: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="text" placeholder="Task Description" name="taskDescription" value={newTask.taskDescription} onChange={(e) => setNewTask({ ...newTask, taskDescription: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="text" placeholder="Customer Name" name="customerName" value={newTask.customerName} onChange={(e) => setNewTask({ ...newTask, customerName: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="text" placeholder="Customer Email" name="customerEmail" value={newTask.customerEmail} onChange={(e) => setNewTask({ ...newTask, customerEmail: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="text" placeholder="Cost" name="cost" value={newTask.cost} onChange={(e) => setNewTask({ ...newTask, cost: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="checkbox" checked={newTask.initialApproval} onChange={(e) => setNewTask({ ...newTask, initialApproval: e.target.checked })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="checkbox" checked={newTask.completionStatus} onChange={(e) => setNewTask({ ...newTask, completionStatus: e.target.checked })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="checkbox" checked={newTask.invoiceApproval} onChange={(e) => setNewTask({ ...newTask, invoiceApproval: e.target.checked })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="checkbox" checked={newTask.paymentStatus} onChange={(e) => setNewTask({ ...newTask, paymentStatus: e.target.checked })} />
+                    </div>
+                    <div className="row-item">
+                        <div className='plusIcon' onClick={() => { handleAddTask(); }}></div>
+                    </div>
+                </div>
+
+                {renderTaskRows()}
+                {renderPaginationButtons()}
+            </>
+        ),
+        Machines: (
+            <>
+                <div className="table-row heading">
+                    <div className="row-item">Machine ID</div>
+                    <div className="row-item">Machine Name</div>
+                    <div className="row-item">Location</div>
+                    <div className="row-item small-row-item">Action</div>
+                </div>
+                <div className='table-row'>
+                    <div className="row-item">
+                        <input type="text" placeholder="ID" name="id" value={newMachine.id} onChange={(e) => setNewMachine({ ...newMachine, id: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="text" placeholder="Name" name="name" value={newMachine.name} onChange={(e) => setNewMachine({ ...newMachine, name: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <input type="text" placeholder="Location" name="location" value={newMachine.location} onChange={(e) => setNewMachine({ ...newMachine, location: e.target.value })} />
+                    </div>
+                    <div className="row-item">
+                        <div className='plusIcon' onClick={handleAddMachine}></div>
+                    </div>
+                </div>
+                {renderMachineRows()}
+                {renderPaginationButtons()}
+            </>
+        ),
+        Employees: (
+            <>
+                <div className="table-row heading">
+                    <div className="row-item">Employee ID</div>
+                    <div className="row-item">Employee Name</div>
+                    <div className="row-item small-row-item">Action</div>
+                </div>
+                <div className='table-row'>
+                    <div className="row-item">
+                        <input
+                            type="text"
+                            placeholder="ID"
+                            name="id"
+                            value={newEmployee.id}
+                            onChange={(e) => setNewEmployee({ ...newEmployee, id: e.target.value })}
+                        />
+                    </div>
+                    <div className="row-item">
+                        <input
+                            type="text"
+                            placeholder="Name"
+                            name="name"
+                            value={newEmployee.name}
+                            onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
+                        />
+                    </div>
+                    <div className="row-item">
+                        <div className='plusIcon' onClick={handleAddEmployee}></div>
+                    </div>
+                </div>
+
+                {renderEmployeeRows()}
+                {renderPaginationButtons()}
+            </>
+        )
+    };
 
     return (
-        <div>
-            <div className="pagination-buttons">
-                <button onClick={() => handleClick('prev')} disabled={currentPage === 1}>Previous</button>
-                <button onClick={() => handleClick('next')} disabled={state === 'Machines' ? indexOfLastItem >= machineList.length
-                    : state === 'Employees' ? indexOfLastItem >= employeeList.length
-                        : indexOfLastItem >= taskList.length}>Next</button>
+        <div className="main-container">
+            <div className="table-container">
+                {tables[state]}
             </div>
-            <div className="page-number">{currentPage} / {totalPageCount}</div>
         </div>
     );
-};
-
-const tables = {
-    Tasks: (
-        <>
-            <div className="table-row heading">
-                <div className="row-item">Task ID</div>
-                <div className="row-item">Task Name</div>
-                <div className="row-item">Invoice ID</div>
-                <div className="row-item">Date</div>
-                <div className="row-item">Invoice File Name</div>
-                <div className="row-item">Task Description</div>
-                <div className="row-item">Customer Name</div>
-                <div className="row-item">Customer Email</div>
-                <div className="row-item">Cost</div>
-                <div className="row-item">Initial Approval</div>
-                <div className="row-item">Completion Status</div>
-                <div className="row-item">Invoice Approval</div>
-                <div className="row-item">Payment Status</div>
-                <div className="row-item">Action</div>
-            </div>
-
-            <div className='table-row'>
-                <div className="row-item">
-                    <input type="text" placeholder="ID" name="id" value={newTask.id} onChange={(e) => setNewTask({ ...newTask, id: e.target.value })} />
-                </div>
-                <div className="row-item">
-                    <input type="text" placeholder="Task Name" name="name" value={newTask.name} onChange={(e) => setNewTask({ ...newTask, name: e.target.value })} />
-                </div>
-                <div className="row-item">
-                    <input type="text" placeholder="Invoice ID" name="invoiceId" value={newTask.invoiceId} onChange={(e) => setNewTask({ ...newTask, invoiceId: e.target.value })} />
-                </div>
-                <div className="row-item">
-                    <input type="date" name="date" value={newTask.date} onChange={(e) => setNewTask({ ...newTask, date: e.target.value })} />
-                </div>
-                <div className="row-item">
-                    <input type="text" placeholder="Invoice File Name" name="invoiceFileName" value={newTask.invoiceFileName} onChange={(e) => setNewTask({ ...newTask, invoiceFileName: e.target.value })} />
-                </div>
-                <div className="row-item">
-                    <input type="text" placeholder="Task Description" name="taskDescription" value={newTask.taskDescription} onChange={(e) => setNewTask({ ...newTask, taskDescription: e.target.value })} />
-                </div>
-                <div className="row-item">
-                    <input type="text" placeholder="Customer Name" name="customerName" value={newTask.customerName} onChange={(e) => setNewTask({ ...newTask, customerName: e.target.value })} />
-                </div>
-                <div className="row-item">
-                    <input type="text" placeholder="Customer Email" name="customerEmail" value={newTask.customerEmail} onChange={(e) => setNewTask({ ...newTask, customerEmail: e.target.value })} />
-                </div>
-                <div className="row-item">
-                    <input type="text" placeholder="Cost" name="cost" value={newTask.cost} onChange={(e) => setNewTask({ ...newTask, cost: e.target.value })} />
-                </div>
-                <div className="row-item">
-                    <input type="checkbox" checked={newTask.initialApproval} onChange={(e) => setNewTask({ ...newTask, initialApproval: e.target.checked })} />
-                </div>
-                <div className="row-item">
-                    <input type="checkbox" checked={newTask.completionStatus} onChange={(e) => setNewTask({ ...newTask, completionStatus: e.target.checked })} />
-                </div>
-                <div className="row-item">
-                    <input type="checkbox" checked={newTask.invoiceApproval} onChange={(e) => setNewTask({ ...newTask, invoiceApproval: e.target.checked })} />
-                </div>
-                <div className="row-item">
-                    <input type="checkbox" checked={newTask.paymentStatus} onChange={(e) => setNewTask({ ...newTask, paymentStatus: e.target.checked })} />
-                </div>
-                <div className="row-item">
-                    <div className='plusIcon' onClick={() => { handleAddTask(); }}></div>
-                </div>
-            </div>
-
-            {renderTaskRows()}
-            {renderPaginationButtons()}
-        </>
-    ),
-    Machines: (
-        <>
-            <div className="table-row heading">
-                <div className="row-item">Machine ID</div>
-                <div className="row-item">Machine Name</div>
-                <div className="row-item">Location</div>
-                <div className="row-item small-row-item">Action</div>
-            </div>
-            <div className='table-row'>
-                <div className="row-item">
-                    <input type="text" placeholder="ID" name="id" value={newMachine.id} onChange={(e) => setNewMachine({ ...newMachine, id: e.target.value })} />
-                </div>
-                <div className="row-item">
-                    <input type="text" placeholder="Name" name="name" value={newMachine.name} onChange={(e) => setNewMachine({ ...newMachine, name: e.target.value })} />
-                </div>
-                <div className="row-item">
-                    <input type="text" placeholder="Location" name="location" value={newMachine.location} onChange={(e) => setNewMachine({ ...newMachine, location: e.target.value })} />
-                </div>
-                <div className="row-item">
-                    <div className='plusIcon' onClick={handleAddMachine}></div>
-                </div>
-            </div>
-            {renderMachineRows()}
-            {renderPaginationButtons()}
-        </>
-    ),
-    Employees: (
-        <>
-            <div className="table-row heading">
-                <div className="row-item">Employee ID</div>
-                <div className="row-item">Employee Name</div>
-                <div className="row-item small-row-item">Action</div>
-            </div>
-            <div className='table-row'>
-                <div className="row-item">
-                    <input
-                        type="text"
-                        placeholder="ID"
-                        name="id"
-                        value={newEmployee.id}
-                        onChange={(e) => setNewEmployee({ ...newEmployee, id: e.target.value })}
-                    />
-                </div>
-                <div className="row-item">
-                    <input
-                        type="text"
-                        placeholder="Name"
-                        name="name"
-                        value={newEmployee.name}
-                        onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
-                    />
-                </div>
-                <div className="row-item">
-                    <div className='plusIcon' onClick={handleAddEmployee}></div>
-                </div>
-            </div>
-
-            {renderEmployeeRows()}
-            {renderPaginationButtons()}
-        </>
-    )
-};
-
-return (
-    <div className="main-container">
-        <div className="table-container">
-            {tables[state]}
-        </div>
-    </div>
-);
 };
 
 export default Main;

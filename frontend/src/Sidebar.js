@@ -9,6 +9,9 @@ const Sidebar = ({ onItemClick, currentState }) => {
     return (
         <div className="sidebar">
             <div className="logo"></div>
+            <button className={currentState === 'Logs' ? 'selectedButton' : ''} onClick={() => handleItemClick('Logs')}>
+                Logs
+            </button>
             <button className={currentState === 'Tasks' ? 'selectedButton' : ''} onClick={() => handleItemClick('Tasks')}>
                 Tasks
             </button>

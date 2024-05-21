@@ -24,7 +24,7 @@ function App() {
 
       <div className="mainArea">
         {/* Display current state */}
-        <Main state={currentState} />
+        <Main state={currentState} user={"Ali"} />
       </div>
     </div>
   );
