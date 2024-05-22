@@ -7,16 +7,43 @@
 	grid-template-rows: 9vh 91vh;
 }
 
+.App-Auth {
+	height: 100%;
+	width: 100%;
+	display: grid;
+	grid-template-areas: "topbar topbar" "main main" "main main";
+	grid-template-columns: max(10vw, 170px) auto;
+	grid-template-rows: 9vh 91vh;
+}
+
 .mainArea {
 	grid-area: main;
 	overflow-y: hidden;
 }
 
+.mainArea-Auth {
+	grid-area: main;
+	overflow-y: hidden;
+	height: 91vh;
+}
+
 .topBar {
-	color: #ddd8ca;
+	color: rgb(249, 249, 249);
 	background-color: #00242b;
 	display: flex;
 	justify-content: left;
+	align-items: center;
+	padding-left: 10px;
+	grid-area: topbar;
+	box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+	z-index: 1;
+}
+
+.topBar-Auth {
+	color: rgb(249, 249, 249);
+	background-color: #00242b;
+	display: flex;
+	justify-content: center;
 	align-items: center;
 	padding-left: 10px;
 	grid-area: topbar;

@@ -73,6 +73,8 @@ app.get('/getTasks', async (req, res) => {
     }
 });
 
+
+
 // Define a route handler for deleting an employee using POST method
 app.post('/deleteEmployee', async (req, res) => {
     console.log(req.body);
@@ -149,6 +151,21 @@ app.post('/addMachine', async (req, res) => {
     }
 });
 
+app.post('/deleteTask', async (req, res) => {
+    const { taskId } = req.body; // Extract id from request parameters
+    try {
+        // Query to delete a machine from the machines table
+        const query = 'DELETE FROM tasks WHERE "Index" = $1';
+        // Execute the query
+        await pool.query(query, [taskId]);
+
+        res.send('Task deleted successfully');
+    } catch (error) {
+        console.error('Error deleting task:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
 app.post('/addTask', async (req, res) => {
     console.log("addTask called");
     console.log(req.body);
@@ -182,20 +199,7 @@ app.post('/addTask', async (req, res) => {
     }
 });
 
-app.post('/deleteTask', async (req, res) => {
-    const { taskId } = req.body; // Extract id from request parameters
-    try {
-        // Query to delete a machine from the machines table
-        const query = 'DELETE FROM tasks WHERE "Index" = $1';
-        // Execute the query
-        await pool.query(query, [taskId]);
 
-        res.send('Task deleted successfully');
-    } catch (error) {
-        console.error('Error deleting task:', error);
-        res.status(500).send('Internal Server Error');
-    }
-});
 
 // Start the server on port 8000
 const PORT = process.env.PORT || 8000;
