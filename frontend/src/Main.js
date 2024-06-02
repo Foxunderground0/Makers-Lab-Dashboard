@@ -6,6 +6,7 @@ const Main = ({ state, user }) => {
     const [taskList, setTaskList] = useState([]);
     const [machineList, setMachineList] = useState([]);
     const [employeeList, setEmployeeList] = useState([]);
+    const [logList, setLogList] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [newEmployee, setNewEmployee] = useState({ id: '', name: '' }); // State to store new employee data
     const [newMachine, setNewMachine] = useState({ id: '', name: '', location: '' }); // State to store new machine data
@@ -69,7 +70,7 @@ const Main = ({ state, user }) => {
                     url = 'http://localhost:8000/getEmployees';
                     break;
                 case 'Logs':
-                    url = `http://localhost:8000/getLogs/${user}`;
+                    url = `http://localhost:8000/getLogs?user=${user}`;
                     break;
                 default:
                     url = null;
@@ -86,6 +87,8 @@ const Main = ({ state, user }) => {
                     setEmployeeList(data);
                 } else if (state === 'Tasks') {
                     setTaskList(data);
+                } else if (state === 'Logs') {
+                    setLogList(data);
                 }
             }
         } catch (error) {
@@ -335,6 +338,29 @@ const Main = ({ state, user }) => {
         ));
     };
 
+    const handleAddLog = async () => { };
+
+    const handleDeleteLog = async (logId) => { };
+
+    const renderLogsRows = () => {
+        // Sort the logs by their log_id
+        const sortedLogs = currentItems.sort((a, b) => a.log_id - b.log_id);
+        return sortedLogs.map(log => (
+            <div className="table-row" key={log.log_id}>
+                <div className="row-item">{log.log_id}</div>
+                <div className="row-item">{new Date(log.date).toLocaleDateString()}</div>
+                <div className="row-item">{log.task_id}</div>
+                <div className="row-item">{log.hours}</div>
+                <div className="row-item">{log.machine}</div>
+                <div className="row-item">{log.machine_hours}</div>
+                <div className="row-item">{log.notes}</div>
+                <div className="row-item">
+                    <div className='trashIcon' onClick={() => handleDeleteLog(log.log_id)}></div>
+                </div>
+            </div>
+        ));
+    }
+
 
 
     const renderPaginationButtons = () => {
@@ -405,6 +431,10 @@ const Main = ({ state, user }) => {
                     </div>
 
                 </div>
+
+                {renderLogsRows()}
+                {renderPaginationButtons()}
+
             </>
         ),
         Tasks: (

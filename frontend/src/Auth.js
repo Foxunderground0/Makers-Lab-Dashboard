@@ -67,7 +67,9 @@ const Auth = () => {
                         Password:
                         <input type="password" style={inputStyle} />
                     </label>
-                    <button type="submit" style={buttonStyle}>Login</button>
+                    <button type="submit" style={buttonStyle} onClick={() => {cookies.set('user', document.querySelector('input[type="text"]').value, { expires: 0.1 });  window.location.reload();}}>
+                        Login 
+                    </button>
                 </form>
                 <p>Software Version 1.1</p>
             </div>

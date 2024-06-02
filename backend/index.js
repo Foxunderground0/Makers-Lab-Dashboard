@@ -74,6 +74,26 @@ app.get('/getTasks', async (req, res) => {
 });
 
 
+// Define a route handler for /getLogs endpoint
+app.get('/getLogs', async (req, res) => {
+    const { user } = req.query; // Extract userId from query parameters
+
+    try {
+        // Query to select logs for the specified user from the logs table
+        const query = 'SELECT * FROM logs WHERE user_id = $1 ORDER BY timestamp DESC';
+
+        // Execute the query
+        const { rows } = await pool.query(query, [user]);
+
+        // Return the logs data as JSON
+        res.json(rows);
+    } catch (error) {
+        console.error('Error retrieving user logs:', error);
+        console.log(user);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
 
 // Define a route handler for deleting an employee using POST method
 app.post('/deleteEmployee', async (req, res) => {
