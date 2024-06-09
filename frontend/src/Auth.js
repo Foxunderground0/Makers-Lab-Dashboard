@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import cookies from 'js-cookie';
 import logo from './logo.png'; // Import the NIC logo image
 
 const Auth = () => {
-    // Add your authentication logic here
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
 
     const formContainerStyle = {
         display: 'flex',
@@ -51,6 +52,12 @@ const Auth = () => {
     const handleSubmit = (event) => {
         event.preventDefault();
         // Add your authentication logic here
+        if (username && password) {
+            cookies.set('user', username, { expires: 0.1 });
+            window.location.reload();
+        } else {
+            alert('Please enter both username and password');
+        }
     };
 
     return (
@@ -59,16 +66,28 @@ const Auth = () => {
                 <img src={logo} alt="NIC Logo" style={logoStyle} />
                 <h2>Login</h2>
                 <form onSubmit={handleSubmit}>
-                    <label>
+                    <label htmlFor="username">
                         Username:
-                        <input type="text" style={inputStyle} />
+                        <input
+                            type="text"
+                            id="username"
+                            style={inputStyle}
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                        />
                     </label>
-                    <label>
+                    <label htmlFor="password">
                         Password:
-                        <input type="password" style={inputStyle} />
+                        <input
+                            type="password"
+                            id="password"
+                            style={inputStyle}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
                     </label>
-                    <button type="submit" style={buttonStyle} onClick={() => {cookies.set('user', document.querySelector('input[type="text"]').value, { expires: 0.1 });  window.location.reload();}}>
-                        Login 
+                    <button type="submit" style={buttonStyle}>
+                        Login
                     </button>
                 </form>
                 <p>Software Version 1.1</p>
@@ -78,3 +97,4 @@ const Auth = () => {
 };
 
 export default Auth;
+

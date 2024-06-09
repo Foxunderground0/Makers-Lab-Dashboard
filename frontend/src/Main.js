@@ -7,11 +7,14 @@ const Main = ({ state, user }) => {
     const [machineList, setMachineList] = useState([]);
     const [employeeList, setEmployeeList] = useState([]);
     const [logList, setLogList] = useState([]);
+    const [logListTaskDropdown, setLogListTaskDropdown] = useState([]);
+    const [logListMachineDropdown, setLogListMachineDropdown] = useState([]);
+
     const [currentPage, setCurrentPage] = useState(1);
     const [newEmployee, setNewEmployee] = useState({ id: '', name: '' }); // State to store new employee data
     const [newMachine, setNewMachine] = useState({ id: '', name: '', location: '' }); // State to store new machine data
     const [newTask, setNewTask] = useState({ id: "", name: "", invoiceId: "", date: "", invoiceFileName: "", taskDescription: "", customerName: "", customerEmail: "", cost: "", initialApproval: "", completionStatus: "", invoiceApproval: "", paymentStatus: "" });
-    const [newLog, setNewLog] = useState({ id: '', date: '', taskId: '', hours: '', machine: "", machineHours: '', notes: '' });
+    const [newLog, setNewLog] = useState({ id: '', employeeName: user, date: '', taskId: '', hours: '', machine: "", machineHours: '', notes: '' });
 
     useEffect(() => {
         setCurrentPage(1); // Reset page when state changes
@@ -52,9 +55,22 @@ const Main = ({ state, user }) => {
 
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = state === 'Machines' ? machineList.slice(indexOfFirstItem, indexOfLastItem)
-        : state === 'Employees' ? employeeList.slice(indexOfFirstItem, indexOfLastItem)
-            : taskList.slice(indexOfFirstItem, indexOfLastItem);
+
+    // Function to get current items based on the state
+    const getCurrentItems = () => {
+        const listMap = {
+            'Machines': machineList,
+            'Employees': employeeList,
+            'Tasks': taskList,
+            'Logs': logList
+        };
+
+        const currentList = listMap[state] || [];
+        return currentList.slice(indexOfFirstItem, indexOfLastItem);
+    };
+
+    // Get the current items
+    const currentItems = getCurrentItems();
 
     const fetchData = async () => {
         try {
@@ -88,7 +104,11 @@ const Main = ({ state, user }) => {
                 } else if (state === 'Tasks') {
                     setTaskList(data);
                 } else if (state === 'Logs') {
-                    setLogList(data);
+                    // console.log(data.logs);
+                    setLogList(data.logs);
+                    setLogListTaskDropdown(data.invoiceID);
+                    setLogListMachineDropdown(data.machinesList);
+                    // console.log(logList);
                 }
             }
         } catch (error) {
@@ -338,7 +358,36 @@ const Main = ({ state, user }) => {
         ));
     };
 
-    const handleAddLog = async () => { };
+    const handleAddLog = async () => {
+        try {
+            // Check if the newLog ID already exists
+            const idExists = logList.some(log => log.log_id === newLog.id);
+            if (idExists) {
+                console.error('Error adding log: ID already exists');
+                return; // Exit the function if ID already exists
+            }
+
+            const response = await fetch('http://localhost:8000/addLog', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newLog) // Send newLog data as JSON
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to add log');
+            }
+
+            // Clear the input fields after successful addition
+            setNewLog({ id: '', date: '', taskId: '', hours: '', machine: "", machineHours: '', notes: '' });
+            // Refetch log data to update the list
+            await fetchData();
+        } catch (error) {
+            console.error('Error adding log:', error);
+        }
+
+    };
 
     const handleDeleteLog = async (logId) => { };
 
@@ -346,13 +395,14 @@ const Main = ({ state, user }) => {
         // Sort the logs by their log_id
         const sortedLogs = currentItems.sort((a, b) => a.log_id - b.log_id);
         return sortedLogs.map(log => (
-            <div className="table-row" key={log.log_id}>
-                <div className="row-item">{log.log_id}</div>
+            <div className="table-row" key={log.id}>
+                <div className="row-item">{log.id}</div>
+                <div className="row-item">{log.employeeName}</div>
                 <div className="row-item">{new Date(log.date).toLocaleDateString()}</div>
-                <div className="row-item">{log.task_id}</div>
+                <div className="row-item">{log.taskId}</div>
                 <div className="row-item">{log.hours}</div>
                 <div className="row-item">{log.machine}</div>
-                <div className="row-item">{log.machine_hours}</div>
+                <div className="row-item">{log.machineHours}</div>
                 <div className="row-item">{log.notes}</div>
                 <div className="row-item">
                     <div className='trashIcon' onClick={() => handleDeleteLog(log.log_id)}></div>
@@ -395,6 +445,7 @@ const Main = ({ state, user }) => {
             <>
                 <div className="table-row heading">
                     <div className="row-item">Log ID</div>
+                    <div className="row-item">Name</div>
                     <div className="row-item">Date</div>
                     <div className="row-item">TaskID</div>
                     <div className="row-item">Hours</div>
@@ -408,17 +459,55 @@ const Main = ({ state, user }) => {
                     <div className="row-item">
                         <input type="text" placeholder="ID" name="id" value={newLog.id} onChange={(e) => setNewLog({ ...newLog, id: e.target.value })} />
                     </div>
+
+                    {/* // If the user is not "Admin" then make this field uneditable
+                    // Assuming you have a variable `userRole` that contains the current user's role */}
+
+                    <div className="row-item">
+                        <input
+                            type="text"
+                            placeholder={user}
+                            name="name"
+                            value={newLog.employeeName}
+                            onChange={(e) => setNewLog({ ...newLog, employeeName: e.target.value })}
+                            readOnly={user !== 'Admin'} // Make the field read-only if the user is not "Admin"
+                        />
+                    </div>
+
+
+                    {/* <div className="row-item">
+                        <input type="text" placeholder={user} name="name" value={newLog.employeeName} onChange={(e) => setNewLog({ ...newLog, employeeName: e.target.value })} />
+                    </div> */}
+
                     <div className="row-item">
                         <input type="date" name="date" value={newLog.date} onChange={(e) => setNewLog({ ...newLog, date: e.target.value })} />
                     </div>
                     <div className="row-item">
-                        <input type="text" placeholder="Task ID" name="taskId" value={newLog.taskId} onChange={(e) => setNewLog({ ...newLog, taskId: e.target.value })} />
+                        <select name="taskId" value={newLog.taskId} onChange={(e) => setNewLog({ ...newLog, taskId: e.target.value })}>
+                            <option value="">Select Task</option>
+                            {logListTaskDropdown.map((task) => (
+                                <option key={task['Invoice ID']} value={task['Invoice ID']}>
+                                    {task['Invoice ID']}
+                                </option>
+                            ))}
+                        </select>
+
                     </div>
                     <div className="row-item">
                         <input type="text" placeholder="Hours" name="hours" value={newLog.hours} onChange={(e) => setNewLog({ ...newLog, hours: e.target.value })} />
                     </div>
                     <div className="row-item">
-                        <input type="text" placeholder="Machine" name="machine" value={newLog.machine} onChange={(e) => setNewLog({ ...newLog, machine: e.target.value })} />
+
+                        <select name="machine" value={newLog.machine} onChange={(e) => setNewLog({ ...newLog, machine: e.target.value })}>
+                            <option value="">Select Machine</option>
+                            {logListMachineDropdown.map((machine) => (
+                                <option key={machine['machine_name']} value={machine['machine_name']}>
+                                    {machine['machine_name']}
+                                </option>
+                            ))}
+                        </select>
+
+
                     </div>
                     <div className="row-item">
                         <input type="text" placeholder="Machine Hours" name="machineHours" value={newLog.machineHours} onChange={(e) => setNewLog({ ...newLog, machineHours: e.target.value })} />

@@ -76,23 +76,44 @@ app.get('/getTasks', async (req, res) => {
 
 // Define a route handler for /getLogs endpoint
 app.get('/getLogs', async (req, res) => {
-    const { user } = req.query; // Extract userId from query parameters
-
+    const { user } = req.query; // Extract user from query parameters
     try {
-        // Query to select logs for the specified user from the logs table
-        const query = 'SELECT * FROM logs WHERE user_id = $1 ORDER BY timestamp DESC';
+        // Query to select logs for the specified user from the Logs table
+        const query = 'SELECT * FROM Logs WHERE "employeeName" = $1';
+        const getInvoiceID = 'SELECT "Invoice ID" FROM Tasks ORDER BY "Index" DESC';
 
-        // Execute the query
+        const getMachinesList = 'SELECT "machine_name" FROM Machines';
+
+
+        // Execute the query to get the user logs
         const { rows } = await pool.query(query, [user]);
 
+        // Execute the query to get the latest Invoice ID
+        const { rows: invoiceRows } = await pool.query(getInvoiceID);
+        const invoiceID = invoiceRows.length > 0 ? invoiceRows : null;
+
+
+        // Execute the query to get the list of machines
+        const { rows: machineRows } = await pool.query(getMachinesList);
+        const machinesList = machineRows.length > 0 ? machineRows : null;
+
+        // Append the latest invoice ID to the logs
+        const result = {
+            logs: rows,
+            invoiceID: invoiceID,
+            machinesList: machinesList
+        };
+
         // Return the logs data as JSON
-        res.json(rows);
+
+        //console.log(result);
+        res.json(result);
     } catch (error) {
         console.error('Error retrieving user logs:', error);
-        console.log(user);
         res.status(500).send('Internal Server Error');
     }
 });
+
 
 
 // Define a route handler for deleting an employee using POST method
