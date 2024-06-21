@@ -65,7 +65,7 @@ function App() {
 			<div className="topBar">
 				<h1>Makers Lab Logging Software</h1>
 			</div>
-			<Sidebar isOpen={sidebarOpen} onItemClick={handleSidebarItemClick} />
+			<Sidebar isOpen={sidebarOpen} onItemClick={handleSidebarItemClick} user={user} />
 			<div className="mainArea">
 				<Main state={currentState} user={user} />
 			</div>

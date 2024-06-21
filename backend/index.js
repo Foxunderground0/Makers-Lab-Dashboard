@@ -73,20 +73,25 @@ app.get('/getTasks', async (req, res) => {
     }
 });
 
-
-// Define a route handler for /getLogs endpoint
 app.get('/getLogs', async (req, res) => {
     const { user } = req.query; // Extract user from query parameters
     try {
         // Query to select logs for the specified user from the Logs table
-        const query = 'SELECT * FROM Logs WHERE "employeeName" = $1';
+        // When employeeName is Admin return all logs
+
+        const query = 'SELECT * FROM Logs';
+
+        // const query = 'SELECT * FROM Logs WHERE "employeeName" = $1';
+
         const getInvoiceID = 'SELECT "Invoice ID" FROM Tasks ORDER BY "Index" DESC';
 
         const getMachinesList = 'SELECT "machine_name" FROM Machines';
 
 
         // Execute the query to get the user logs
-        const { rows } = await pool.query(query, [user]);
+        // no parameter if admin
+        const { rows } = await pool.query(query);
+        // const { rows } = await pool.query(query, [user]);
 
         // Execute the query to get the latest Invoice ID
         const { rows: invoiceRows } = await pool.query(getInvoiceID);
@@ -113,6 +118,43 @@ app.get('/getLogs', async (req, res) => {
         res.status(500).send('Internal Server Error');
     }
 });
+
+// Define a route for get machine consumption and hr consumption
+// http://localhost:8000/getMachineConsumption?startDate=${startDate}&endDate=${endDate}
+app.get('/getMachineConsumption', async (req, res) => {
+    const { startDate, endDate } = req.query; // Extract startDate and endDate from query parameters
+    try {
+        // Query to get machine consumption from logs
+        const query = 'SELECT "machine", SUM("machineHours") AS "totalMachineHours" FROM Logs WHERE "date" >= $1 AND "date" <= $2 GROUP BY "machine"';
+
+        // Execute the query
+        const { rows } = await pool.query(query, [startDate, endDate]);
+
+        // Return the machine consumption data as JSON
+        res.json(rows);
+    } catch (error) {
+        console.error('Error retrieving machine consumption:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.get('/getHrConsumption', async (req, res) => {
+    const { startDate, endDate } = req.query; // Extract startDate and endDate from query parameters
+    try {
+        // Query to get HR consumption from logs
+        const query = 'SELECT "employeeName", SUM("hours") AS "totalHours" FROM Logs WHERE "date" >= $1 AND "date" <= $2 GROUP BY "employeeName"';
+
+        // Execute the query
+        const { rows } = await pool.query(query, [startDate, endDate]);
+
+        // Return the HR consumption data as JSON
+        res.json(rows);
+    } catch (error) {
+        console.error('Error retrieving HR consumption:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
 
 
 
@@ -240,6 +282,50 @@ app.post('/addTask', async (req, res) => {
     }
 });
 
+// setNewLog({ id: '', employeeName: user, date: '', taskId: '', hours: '', machine: "", machineHours: '', notes: '' });
+
+// CREATE TABLE Logs (
+//   "id" SERIAL PRIMARY KEY,
+//   "employeeName" VARCHAR(255),
+//   "date" DATE,
+//   "taskId" INT,
+//   "hours" NUMERIC,
+//   "machine" VARCHAR(255),
+//   "machineHours" NUMERIC,
+//   "notes" TEXT
+// );
+
+app.post('/deleteLog', async (req, res) => {
+    const { logId } = req.body; // Extract id from request parameters
+    try {
+        // Query to delete a log from the logs table
+        const query = 'DELETE FROM logs WHERE id = $1';
+        // Execute the query
+        await pool.query(query, [logId]);
+
+        res.send('Log deleted successfully');
+    } catch (error) {
+        console.error('Error deleting log:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.post('/addLog', async (req, res) => {
+    console.log(req.body);
+    const { employeeName, date, taskId, hours, machine, machineHours, notes } = req.body; // Extract id, name, and location from request body
+    try {
+        // Query to insert a new log into the logs table
+        const query = 'INSERT INTO logs ("employeeName", "date", "taskId", "hours", "machine", "machineHours", "notes", "id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8)';
+        // Execute the query
+        console.log(query, [employeeName, date, taskId, hours, machine, machineHours, notes, req.body['id']]);
+        await pool.query(query, [employeeName, date, taskId, hours, machine, machineHours, notes, req.body['id']]);
+
+        res.send('Log added successfully');
+    } catch (error) {
+        console.error('Error adding log:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
 
 
 // Start the server on port 8000
