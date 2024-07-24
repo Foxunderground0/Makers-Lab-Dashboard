@@ -3,8 +3,11 @@ import './Main.css';
 
 const Main = ({ state, user }) => {
 
-	const startDate = '2021-01-01';
-	const endDate = '2024-12-31';
+	// const startDate = '2021-01-01';
+	// const endDate = '2024-12-31';
+	const [startDate, setStartDate] = useState(new Date(new Date().setDate(1)).toISOString().split('T')[0]);
+	const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+
 
 	const [taskList, setTaskList] = useState([]);
 	const [machineList, setMachineList] = useState([]);
@@ -56,6 +59,11 @@ const Main = ({ state, user }) => {
 		// Set the default date to the current date
 		setNewLog(prevState => ({ ...prevState, date: new Date().toISOString().split('T')[0] }));
 	}, [logList]);
+
+
+	useEffect(() => {
+		fetchData();
+	}, [state, startDate, endDate]);
 
 	let itemsPerPage;
 	if (state === 'Tasks') {
@@ -459,11 +467,14 @@ const Main = ({ state, user }) => {
 	}
 
 
-
 	const renderPaginationButtons = () => {
 		const shouldDisplayButtons = state === 'Machines' ? machineList.length > itemsPerPage
 			: state === 'Employees' ? employeeList.length > itemsPerPage
-				: taskList.length > itemsPerPage;
+				: state === 'Tasks' ? taskList.length > itemsPerPage
+					: state === 'Logs' ? logList.length > itemsPerPage
+						: state === 'HR Consumption' ? hrConsumption.length > itemsPerPage
+							: state === 'Machine Consumption' ? machineConsumption.length > itemsPerPage
+								: false;
 
 		if (!shouldDisplayButtons) {
 			return null;
@@ -472,15 +483,24 @@ const Main = ({ state, user }) => {
 		// Calculate total number of pages
 		const totalPageCount = Math.ceil((state === 'Machines' ? machineList.length
 			: state === 'Employees' ? employeeList.length
-				: taskList.length) / itemsPerPage);
+				: state === 'Tasks' ? taskList.length
+					: state === 'Logs' ? logList.length
+						: state === 'HR Consumption' ? hrConsumption.length
+							: state === 'Machine Consumption' ? machineConsumption.length
+								: 0) / itemsPerPage);
 
 		return (
 			<div>
 				<div className="pagination-buttons">
 					<button onClick={() => handleClick('prev')} disabled={currentPage === 1}>Previous</button>
-					<button onClick={() => handleClick('next')} disabled={state === 'Machines' ? indexOfLastItem >= machineList.length
-						: state === 'Employees' ? indexOfLastItem >= employeeList.length
-							: indexOfLastItem >= taskList.length}>Next</button>
+					<button onClick={() => handleClick('next')} disabled={
+						state === 'Machines' ? indexOfLastItem >= machineList.length
+							: state === 'Employees' ? indexOfLastItem >= employeeList.length
+								: state === 'Tasks' ? indexOfLastItem >= taskList.length
+									: state === 'Logs' ? indexOfLastItem >= logList.length
+										: state === 'HR Consumption' ? indexOfLastItem >= hrConsumption.length
+											: state === 'Machine Consumption' ? indexOfLastItem >= machineConsumption.length
+												: true}>Next</button>
 				</div>
 				<div className="page-number">{currentPage} / {totalPageCount}</div>
 			</div>
@@ -500,6 +520,24 @@ const Main = ({ state, user }) => {
 						<div className="row-item">{item.totalHours}</div>
 					</div>
 				))}
+				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '10px' }}>
+					<div style={{ marginRight: '10px' }}>
+						<label style={{ marginRight: '5px' }}>Start Date:</label>
+						<input
+							type="date"
+							value={startDate}
+							onChange={(e) => { setStartDate(e.target.value); fetchData(); }}
+						/>
+					</div>
+					<div>
+						<label style={{ marginRight: '5px' }}>End Date:</label>
+						<input
+							type="date"
+							value={endDate}
+							onChange={(e) => { setEndDate(e.target.value); fetchData(); }}
+						/>
+					</div>
+				</div>
 			</>
 		),
 		'Machine Consumption': (
@@ -514,6 +552,24 @@ const Main = ({ state, user }) => {
 						<div className="row-item">{item.totalMachineHours}</div>
 					</div>
 				))}
+				<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '10px' }}>
+					<div style={{ marginRight: '10px' }}>
+						<label style={{ marginRight: '5px' }}>Start Date:</label>
+						<input
+							type="date"
+							value={startDate}
+							onChange={(e) => { setStartDate(e.target.value); fetchData(); }}
+						/>
+					</div>
+					<div>
+						<label style={{ marginRight: '5px' }}>End Date:</label>
+						<input
+							type="date"
+							value={endDate}
+							onChange={(e) => { setEndDate(e.target.value); fetchData(); }}
+						/>
+					</div>
+				</div>
 			</>
 		),
 		Logs: (
@@ -747,11 +803,11 @@ const Main = ({ state, user }) => {
 	};
 
 	return (
-		<div className="main-container">
+		<div className="main-container" >
 			<div className="table-container">
 				{tables[state]}
 			</div>
-		</div>
+		</div >
 	);
 };
 
